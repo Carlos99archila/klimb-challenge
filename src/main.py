@@ -1,9 +1,8 @@
-from fastapi import Depends, FastAPI
-from routers import user
-from fastapi.middleware.cors import CORSMiddleware
 import os
+from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from database.database import SessionLocal, engine, Base
-
+from routers import user, operations
 
 os.environ["REPOSITORY"] = "klimb-challenge"
 os.environ["FOLDER"] = ""
@@ -11,6 +10,7 @@ os.environ["FOLDER"] = ""
 app = FastAPI()
 
 app.include_router(user.router)
+app.include_router(operations.router)
 
 
 

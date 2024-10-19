@@ -2,7 +2,7 @@ import jwt
 import os
 from datetime import datetime, timedelta, timezone
 
-#SECRET_KEY = str(os.environ.get("SECRET_KEY")) #coin variable de entorno en la nube
+#SECRET_KEY = str(os.environ.get("SECRET_KEY")) #con variable de entorno en la nube
 SECRET_KEY = str(os.environ.get("SECRET_KEY", "klimb-challenge-key")) #para usar en local 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30 

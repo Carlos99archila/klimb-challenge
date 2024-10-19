@@ -6,6 +6,7 @@ from sqlalchemy import String, and_
 from sqlalchemy.sql import func
 import uuid
 from sqlalchemy.exc import SQLAlchemyError
+from fastapi import HTTPException, status
 
 import database.sql_models as sql_models
 import models.py_schemas as py_schemas
@@ -37,19 +38,28 @@ async def create_user(db: AsyncSession, data: py_schemas.UserCreate) -> py_schem
         return py_schemas.User.model_validate(new_user)
     except SQLAlchemyError as e:
         print(f"Error creating user: {str(e)}")
-        return False
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
 
 # Tabla de operaciones
-async def create_operation(db: AsyncSession, data: py_schemas.OperationCreate) -> py_schemas.Operation:
+async def create_operation(db: AsyncSession, data: py_schemas.OperationCreate, current_user: py_schemas.User) -> py_schemas.Operation:
     try:
-        new_operation = sql_models.Operation(**data.model_dump())
+        # Asignar correctamente los datos de la operación
+        new_operation = sql_models.Operation(
+            operator_id=current_user.id,  # El ID del operador que está creando la operación
+            amount_required=data.amount_required,  # Monto necesario
+            interest_rate=data.interest_rate,  # Tasa de interés
+            deadline=data.deadline,  # Fecha límite
+            amount_collected=0.0,  # Inicialmente, el monto recaudado es 0
+            is_closed=False,  # La operación comienza como abierta
+            created_at=datetime.now(timezone.utc),  # Fecha de creación
+        )
         db.add(new_operation)
         await db.commit()
         await db.refresh(new_operation)
         return new_operation
     except SQLAlchemyError as e:
         print(f"Error creating the operation: {str(e)}")
-        return False
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
 
 # Tabla de pujas
 async def create_bid(db: AsyncSession, data: py_schemas.BidCreate) -> py_schemas.Bid:
@@ -61,7 +71,7 @@ async def create_bid(db: AsyncSession, data: py_schemas.BidCreate) -> py_schemas
         return new_bid
     except SQLAlchemyError as e:
         print(f"Error creating the bid: {str(e)}")
-        return False
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
 
 
 # --- READ ---
@@ -72,15 +82,14 @@ async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[py_schemas.
         return result.scalars().first()
     except SQLAlchemyError as e:
         print(f"Error getting user information: {str(e)}")
-        return False
-
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
 async def get_user_by_username(db: AsyncSession, username: str) -> Optional[py_schemas.User]:
     try:
         result = await db.execute(select(sql_models.User).filter(sql_models.User.username == username))
         return result.scalars().first()
     except SQLAlchemyError as e:
         print(f"Error getting user information: {str(e)}")
-        return False
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
 
 # Tabla de operaciones
 async def get_operation_by_id(db: AsyncSession, operation_id: int) -> Optional[py_schemas.Operation]:
@@ -89,7 +98,7 @@ async def get_operation_by_id(db: AsyncSession, operation_id: int) -> Optional[p
         return result.scalars().first()
     except SQLAlchemyError as e:
         print(f"Error getting operation information: {str(e)}")
-        return False
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
 
 # Tabla de pujas
 async def get_bid_by_id(db: AsyncSession, bid_id: int) -> Optional[py_schemas.Bid]:
@@ -98,7 +107,7 @@ async def get_bid_by_id(db: AsyncSession, bid_id: int) -> Optional[py_schemas.Bi
         return result.scalars().first()
     except SQLAlchemyError as e:
             print(f"Error getting bid information: {str(e)}")
-            return False
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
 
 
 # --- DELETE ---
@@ -114,8 +123,7 @@ async def delete_user_by_id(db: AsyncSession, user_id: str) -> bool:
         return True
     except SQLAlchemyError as e:
         print(f"Error deleting user: {str(e)}")
-        return False
-
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
 # Tabla de operaciones
 async def delete_operation_by_id(db: AsyncSession, operation_id: int) -> bool:
     try:
@@ -128,8 +136,7 @@ async def delete_operation_by_id(db: AsyncSession, operation_id: int) -> bool:
         return True
     except SQLAlchemyError as e:
         print(f"Error deleting operation: {str(e)}")
-        return False
-
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
 # Tabla de pujas
 async def delete_bid_by_id(db: AsyncSession, bid_id: int) -> bool:
     try:
@@ -142,7 +149,7 @@ async def delete_bid_by_id(db: AsyncSession, bid_id: int) -> bool:
         return True
     except SQLAlchemyError as e:
         print(f"Error deleting bid: {str(e)}")
-        return False
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
 
 
 # --- UPDATE ---
@@ -159,8 +166,8 @@ async def update_user_by_id(db: AsyncSession, user_id: int, property_name: str, 
         return False
     except SQLAlchemyError as e:
         print(f"Error updating user information: {str(e)}")
-        return False
-
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
+    
 # Tabla de operaciones
 async def update_operation_by_id(db: AsyncSession, operation_id: int, property_name: str, value: str) -> bool:
     try:
@@ -174,8 +181,8 @@ async def update_operation_by_id(db: AsyncSession, operation_id: int, property_n
         return False
     except SQLAlchemyError as e:
         print(f"Error updating operation information: {str(e)}")
-        return False
-
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")
+    
 # Tabla de pujas
 async def update_bid_by_id(db: AsyncSession, bid_id: int, property_name: str, value: str) -> bool:
     try:
@@ -189,4 +196,4 @@ async def update_bid_by_id(db: AsyncSession, bid_id: int, property_name: str, va
         return False
     except SQLAlchemyError as e:
         print(f"Error updating bid information: {str(e)}")
-        return False
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error.")

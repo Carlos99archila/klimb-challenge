@@ -20,7 +20,6 @@ class User(UserBase):
         from_attributes = True
 
 
-# --- Esquema para la tabla Operations ---
 class OperationBase(BaseModel):
     amount_required: float
     interest_rate: float
@@ -31,7 +30,7 @@ class OperationCreate(OperationBase):
 
 class Operation(OperationBase):
     id: int
-    operator_id: int
+    operator_id: uuid.UUID
     amount_collected: float = 0.0
     is_closed: bool
     created_at: datetime
@@ -76,9 +75,3 @@ class BidUpdate(BaseModel):
     amount: Optional[float] = None
     interest_rate: Optional[float] = None
 
-# --- Esquemas extras de respuesta ---
-# login 
-class UserLoginResponse(BaseModel):
-    username: str
-    role: str
-    access_token: str
