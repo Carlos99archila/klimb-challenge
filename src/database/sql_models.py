@@ -30,7 +30,7 @@ class Operation(Base):
     __tablename__ = "operations"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    operator_id = Column(Integer, ForeignKey("users.id"), nullable=False) 
+    operator_id = Column(String(36), ForeignKey("users.id"), nullable=False) 
     amount_required = Column(DECIMAL(15, 2), nullable=False)  
     interest_rate = Column(Float, nullable=False)  
     deadline = Column(Date, nullable=False)  
@@ -46,7 +46,7 @@ class Bid(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     operation_id = Column(Integer, ForeignKey("operations.id"), nullable=False)  
-    investor_id = Column(Integer, ForeignKey("users.id"), nullable=False)  
+    investor_id = Column(String(36), ForeignKey("users.id"), nullable=False)  
     amount = Column(DECIMAL(15, 2), nullable=False)  
     interest_rate = Column(Float, nullable=False)  
     bid_date = Column(TIMESTAMP, server_default="CURRENT_TIMESTAMP")

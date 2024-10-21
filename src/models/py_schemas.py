@@ -4,6 +4,7 @@ from typing import Optional, List
 import uuid
 
 
+
 # --- Esquema para la tabla Users ---
 class UserBase(BaseModel):
     username: str
@@ -20,6 +21,8 @@ class User(UserBase):
         from_attributes = True
 
 
+
+# --- Esquema para la tabla Bids ---
 class OperationBase(BaseModel):
     amount_required: float
     interest_rate: float
@@ -39,6 +42,7 @@ class Operation(OperationBase):
         from_attributes = True
 
 
+
 # --- Esquema para la tabla Bids ---
 class BidBase(BaseModel):
     amount: float
@@ -46,14 +50,14 @@ class BidBase(BaseModel):
 
 class BidCreate(BidBase):
     operation_id: int
-    investor_id: int
 
 class Bid(BidBase):
     id: int
     bid_date: datetime
-    
+
     class Config:
         from_attributes = True
+
 
 
 # --- Esquemas para actualización ---
